@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>com.nexus</groupId>
-    <artifactId>inventory_service</artifactId>
+    <artifactId>auth_service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>inventory_service</name>
+    <name>auth_service</name>
 
     <properties>
         <java.version>21</java.version>

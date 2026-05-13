@@ -12,5 +12,4 @@ CREATE TABLE USUARIOS (
     CONSTRAINT fk_user_tipo FOREIGN KEY (tipo_id) REFERENCES TIPOS_USUARIO(id)
 );
 
-INSERT INTO TIPOS_USUARIO (nombre_tipo, descripcion) VALUES ('ADMIN', 'Administrador total');
-INSERT INTO TIPOS_USUARIO (nombre_tipo, descripcion) VALUES ('CLIENTE', 'Usuario comprador');
+INSERT INTO TIPOS_USUARIO (nombre_tipo, descripcion) VALUES ('ADMIN', 'Administrador'), ('CLIENTE', 'Cliente');
