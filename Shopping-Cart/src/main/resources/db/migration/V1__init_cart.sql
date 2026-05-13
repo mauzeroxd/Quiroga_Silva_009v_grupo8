@@ -1,0 +1,6 @@
+CREATE TABLE CARRITO (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    juego_id INT NOT NULL,
+    cantidad INT DEFAULT 1
+);

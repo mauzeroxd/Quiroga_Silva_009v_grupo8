@@ -30,6 +30,26 @@ services:
     ports:
       - "3308:3306"
 
+  db-profile:
+    image: mysql:8.0
+    container_name: db-profile
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_profile_db
+    ports:
+      - "3309:3306"
+
+  db-cart:
+    image: mysql:8.0
+    container_name: db-cart
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_cart_db
+    ports:
+      - "3310:3306"
+
   # --- MICROSERVICIOS ---
   auth-service:
     build: ./auth_service
@@ -71,3 +91,28 @@ services:
     depends_on:
       - db-inventory
       - catalog-service
+
+
+
+  profile-service:
+    build: ./profile_service
+    container_name: profile-service
+    restart: on-failure
+    ports: ["8083:8083"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-profile:3306/nexus_profile_db
+      AUTH_SERVICE_URL: http://auth-service:8080
+    depends_on: [db-profile, auth-service]
+
+
+
+
+  cart-service:
+    build: ./shopping_cart_service
+    container_name: cart-service
+    ports: ["8084:8084"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-cart:3306/nexus_cart_db
+      AUTH_SERVICE_URL: http://auth-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+    depends_on: [db-cart, auth-service, catalog-service]
