@@ -1,0 +1,16 @@
+CREATE TABLE TIPOS_USUARIO (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_tipo VARCHAR(20) NOT NULL,
+    descripcion VARCHAR(100)
+);
+
+CREATE TABLE USUARIOS (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    tipo_id INT,
+    CONSTRAINT fk_user_tipo FOREIGN KEY (tipo_id) REFERENCES TIPOS_USUARIO(id)
+);
+
+INSERT INTO TIPOS_USUARIO (nombre_tipo, descripcion) VALUES ('ADMIN', 'Administrador total');
+INSERT INTO TIPOS_USUARIO (nombre_tipo, descripcion) VALUES ('CLIENTE', 'Usuario comprador');

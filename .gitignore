@@ -1,0 +1,29 @@
+# Maven
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# generated
+**/generated-sources/
+**/generated-test-sources/
+
+# Spring Boot
+*.pid
+
+# local environment
+*.env
