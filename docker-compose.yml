@@ -60,6 +60,44 @@ services:
       - "3311:3306"
     restart: always
 
+  db-review:
+    image: mysql:8.0
+    container_name: db-review
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_review_db
+    ports:
+      - "3312:3306"
+    restart: always
+
+  db-wishlist:
+    image: mysql:8.0
+    container_name: db-wishlist
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_wishlist_db
+    ports:
+      - "3313:3306"
+    restart: always
+
+  db-category:
+    image: mysql:8.0
+    container_name: db-category
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_category_db
+    ports: ["3314:3306"]
+    restart: always
+
+  db-payment:
+    image: mysql:8.0
+    container_name: db-payment
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_payment_db
+    ports: ["3315:3306"]
+    restart: always
+
   # --- MICROSERVICIOS (Puertos 8080 al 8085) ---
 
   auth-service:
@@ -151,3 +189,61 @@ services:
       - auth-service
       - catalog-service
     restart: on-failure
+
+
+  review-service:
+    build: ./review_service
+    container_name: review-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-review:3306/nexus_review_db
+      AUTH_SERVICE_URL: http://auth-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+    depends_on:
+      - db-review
+      - auth-service
+      - catalog-service
+
+
+
+  wishlist-service:
+    build: ./wishlist_service
+    container_name: wishlist-service
+    ports: ["8087:8087"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-wishlist:3306/nexus_wishlist_db
+      AUTH_SERVICE_URL: http://auth-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+    depends_on: [db-wishlist, auth-service, catalog-service]
+
+
+
+  category-service:
+    build: ./category_service
+    container_name: category-service
+    ports: ["8088:8088"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-category:3306/nexus_category_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+    depends_on: [db-category]
+
+
+
+  payment-service:
+    build: ./payment_service
+    container_name: payment-service
+    ports: ["8089:8089"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-payment:3306/nexus_payment_db
+      ORDER_SERVICE_URL: http://order-service:8085
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+    depends_on:
+      - db-payment
+      - order-service

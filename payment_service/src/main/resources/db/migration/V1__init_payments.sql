@@ -1,0 +1,8 @@
+CREATE TABLE PAGOS (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    pedido_id INT NOT NULL,
+    monto DECIMAL(10, 2) NOT NULL,
+    metodo_pago VARCHAR(50),
+    estado VARCHAR(20),
+    fecha_pago DATETIME DEFAULT CURRENT_TIMESTAMP
+);
