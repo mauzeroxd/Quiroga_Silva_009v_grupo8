@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>com.nexus</groupId>
-    <artifactId>Shopping-Cart</artifactId>
+    <artifactId>order_service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Shopping-Cart</name>
+    <name>order_service</name>
 
     <properties>
         <java.version>21</java.version>

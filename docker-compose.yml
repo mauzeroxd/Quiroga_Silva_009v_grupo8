@@ -1,60 +1,70 @@
 services:
-  # --- BASES DE DATOS ---
+  # --- BASES DE DATOS (Motores MySQL Independientes) ---
   db-catalog:
     image: mysql:8.0
     container_name: db-catalog
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_catalog_db
     ports:
       - "3306:3306"
+    restart: always
 
   db-inventory:
     image: mysql:8.0
     container_name: db-inventory
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_inventory_db
     ports:
       - "3307:3306"
+    restart: always
 
   db-auth:
     image: mysql:8.0
     container_name: db-auth
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_auth_db
     ports:
       - "3308:3306"
+    restart: always
 
   db-profile:
     image: mysql:8.0
     container_name: db-profile
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_profile_db
     ports:
       - "3309:3306"
+    restart: always
 
   db-cart:
     image: mysql:8.0
     container_name: db-cart
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_cart_db
     ports:
       - "3310:3306"
+    restart: always
 
-  # --- MICROSERVICIOS ---
+  db-order:
+    image: mysql:8.0
+    container_name: db-order
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_order_db
+    ports:
+      - "3311:3306"
+    restart: always
+
+  # --- MICROSERVICIOS (Puertos 8080 al 8085) ---
+
   auth-service:
     build: ./auth_service
     container_name: auth-service
-    restart: on-failure
     ports:
       - "8080:8080"
     environment:
@@ -63,11 +73,11 @@ services:
       SPRING_DATASOURCE_PASSWORD: root123
     depends_on:
       - db-auth
+    restart: on-failure
 
   catalog-service:
     build: ./catalog_service
     container_name: catalog-service
-    restart: on-failure
     ports:
       - "8081:8081"
     environment:
@@ -76,11 +86,11 @@ services:
       SPRING_DATASOURCE_PASSWORD: root123
     depends_on:
       - db-catalog
+    restart: on-failure
 
   inventory-service:
     build: ./inventory_service
     container_name: inventory-service
-    restart: on-failure
     ports:
       - "8082:8082"
     environment:
@@ -91,28 +101,53 @@ services:
     depends_on:
       - db-inventory
       - catalog-service
-
-
+    restart: on-failure
 
   profile-service:
     build: ./profile_service
     container_name: profile-service
-    restart: on-failure
-    ports: ["8083:8083"]
+    ports:
+      - "8083:8083"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db-profile:3306/nexus_profile_db
       AUTH_SERVICE_URL: http://auth-service:8080
-    depends_on: [db-profile, auth-service]
-
-
-
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+    depends_on:
+      - db-profile
+      - auth-service
+    restart: on-failure
 
   cart-service:
     build: ./shopping_cart_service
     container_name: cart-service
-    ports: ["8084:8084"]
+    ports:
+      - "8084:8084"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db-cart:3306/nexus_cart_db
       AUTH_SERVICE_URL: http://auth-service:8080
       CATALOG_SERVICE_URL: http://catalog-service:8081
-    depends_on: [db-cart, auth-service, catalog-service]
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+    depends_on:
+      - db-cart
+      - auth-service
+      - catalog-service
+    restart: on-failure
+
+  order-service:
+    build: ./order_service
+    container_name: order-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-order:3306/nexus_order_db
+      AUTH_SERVICE_URL: http://auth-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+    depends_on:
+      - db-order
+      - auth-service
+      - catalog-service
+    restart: on-failure
