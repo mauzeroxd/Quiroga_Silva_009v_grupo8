@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +25,7 @@ public class VideojuegoService {
     }
 
     public VideojuegoResponse findById(Long id) {
+        Objects.requireNonNull(id, "El ID de videojuego es obligatorio");
         VideojuegoModel model = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Videojuego no encontrado con ID: " + id));
         return mapToResponse(model);

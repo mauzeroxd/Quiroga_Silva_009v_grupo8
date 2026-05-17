@@ -2,7 +2,7 @@ package com.nexus.wishlist_service.exceptions;
 
 
 
-import com.nexus.catalog_service.dtos.response.ErrorResponse;
+import com.nexus.wishlist_service.dtos.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

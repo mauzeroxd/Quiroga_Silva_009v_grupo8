@@ -1,4 +1,4 @@
-package com.nexus.catalog_service;
+package com.nexus.review_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

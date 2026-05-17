@@ -3,7 +3,7 @@ package com.nexus.auth_service.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
-@Data @Entity @Table(name = "TIPOS_USUARIO")
+@Data @Entity @Table(name = "tipos_usuario")
 public class TipoUsuarioModel {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,4 +1,4 @@
-package com.nexus.catalog_service.exceptions;
+package com.nexus.payment_service.exceptions;
 
 public class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {

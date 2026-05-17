@@ -14,11 +14,16 @@ import java.util.List;
 @RequestMapping("/api/v1/categorias")
 public class CategoryController {
 
-    @Autowired private CategoryService service;
+    @Autowired 
+    private CategoryService service;
 
     @PostMapping
-    public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryRequest request) {
-        return new ResponseEntity<>(service.crear(request), HttpStatus.CREATED);
+    public ResponseEntity<CategoryResponse> create(
+            @Valid @RequestBody CategoryRequest request,
+            @RequestHeader("X-Admin-Id") Long adminId) { // Recibimos el ID por Header
+        
+        // Ahora pasamos ambos parámetros: el request y el adminId
+        return new ResponseEntity<>(service.crear(request, adminId), HttpStatus.CREATED);
     }
 
     @GetMapping

@@ -1,249 +1,330 @@
 services:
-  # --- BASES DE DATOS (Motores MySQL Independientes) ---
-  db-catalog:
-    image: mysql:8.0
-    container_name: db-catalog
-    environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: nexus_catalog_db
-    ports:
-      - "3306:3306"
-    restart: always
 
-  db-inventory:
+  # ==========================================
+  # 1. AUTH SERVICE (Puerto: 8080 | DB: 3308)
+  # ==========================================
+  mysql-auth:
     image: mysql:8.0
-    container_name: db-inventory
-    environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: nexus_inventory_db
-    ports:
-      - "3307:3306"
+    container_name: mysql-auth
     restart: always
-
-  db-auth:
-    image: mysql:8.0
-    container_name: db-auth
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_auth_db
     ports:
       - "3308:3306"
-    restart: always
+    volumes:
+      - mysql_auth_data:/var/lib/mysql
 
-  db-profile:
+  auth-service:
+    build:
+      context: ./auth_service
+    container_name: auth-service
+    restart: always
+    depends_on:
+      - mysql-auth
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-auth:3306/nexus_auth_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+
+  # ==========================================
+  # 2. CATALOG SERVICE (Puerto: 8081 | DB: 3306)
+  # ==========================================
+  mysql-catalog:
     image: mysql:8.0
-    container_name: db-profile
+    container_name: mysql-catalog
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_catalog_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_catalog_data:/var/lib/mysql
+
+  catalog-service:
+    build:
+      context: ./catalog_service
+    container_name: catalog-service
+    restart: always
+    depends_on:
+      - mysql-catalog
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-catalog:3306/nexus_catalog_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+
+  # ==========================================
+  # 3. INVENTORY SERVICE (Puerto: 8082 | DB: 3307)
+  # ==========================================
+  mysql-inventory:
+    image: mysql:8.0
+    container_name: mysql-inventory
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: nexus_inventory_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_inventory_data:/var/lib/mysql
+
+  inventory-service:
+    build:
+      context: ./inventory_service
+    container_name: inventory-service
+    restart: always
+    depends_on:
+      - mysql-inventory
+      - catalog-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-inventory:3306/nexus_inventory_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+
+  # ==========================================
+  # 4. PROFILE SERVICE (Puerto: 8083 | DB: 3309)
+  # ==========================================
+  mysql-profile:
+    image: mysql:8.0
+    container_name: mysql-profile
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_profile_db
     ports:
       - "3309:3306"
-    restart: always
+    volumes:
+      - mysql_profile_data:/var/lib/mysql
 
-  db-cart:
+  profile-service:
+    build:
+      context: ./profile_service
+    container_name: profile-service
+    restart: always
+    depends_on:
+      - mysql-profile
+      - auth-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-profile:3306/nexus_profile_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      AUTH_SERVICE_URL: http://auth-service:8080
+
+  # ==========================================
+  # 5. SHOPPING CART SERVICE (Puerto: 8084 | DB: 3310)
+  # ==========================================
+  mysql-cart:
     image: mysql:8.0
-    container_name: db-cart
+    container_name: mysql-cart
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_cart_db
     ports:
       - "3310:3306"
-    restart: always
+    volumes:
+      - mysql_cart_data:/var/lib/mysql
 
-  db-order:
+  cart-service:
+    build:
+      context: ./shopping_cart_service
+    container_name: cart-service
+    restart: always
+    depends_on:
+      - mysql-cart
+      - auth-service
+      - catalog-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-cart:3306/nexus_cart_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      AUTH_SERVICE_URL: http://auth-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+
+  # ==========================================
+  # 6. ORDER SERVICE (Puerto: 8085 | DB: 3311)
+  # ==========================================
+  mysql-order:
     image: mysql:8.0
-    container_name: db-order
+    container_name: mysql-order
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_order_db
     ports:
       - "3311:3306"
-    restart: always
+    volumes:
+      - mysql_order_data:/var/lib/mysql
 
-  db-review:
+  order-service:
+    build:
+      context: ./order_service
+    container_name: order-service
+    restart: always
+    depends_on:
+      - mysql-order
+      - auth-service
+      - catalog-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-order:3306/nexus_order_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      AUTH_SERVICE_URL: http://auth-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+
+  # ==========================================
+  # 7. REVIEW SERVICE (Puerto: 8086 | DB: 3312)
+  # ==========================================
+  mysql-review:
     image: mysql:8.0
-    container_name: db-review
+    container_name: mysql-review
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_review_db
     ports:
       - "3312:3306"
-    restart: always
+    volumes:
+      - mysql_review_data:/var/lib/mysql
 
-  db-wishlist:
+  review-service:
+    build:
+      context: ./review_service
+    container_name: review-service
+    restart: always
+    depends_on:
+      - mysql-review
+      - auth-service
+      - catalog-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-review:3306/nexus_review_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      AUTH_SERVICE_URL: http://auth-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+
+  # ==========================================
+  # 8. WISHLIST SERVICE (Puerto: 8087 | DB: 3313)
+  # ==========================================
+  mysql-wishlist:
     image: mysql:8.0
-    container_name: db-wishlist
+    container_name: mysql-wishlist
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_wishlist_db
     ports:
       - "3313:3306"
-    restart: always
+    volumes:
+      - mysql_wishlist_data:/var/lib/mysql
 
-  db-category:
+  wishlist-service:
+    build:
+      context: ./wishlist_service
+    container_name: wishlist-service
+    restart: always
+    depends_on:
+      - mysql-wishlist
+      - auth-service
+      - catalog-service
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-wishlist:3306/nexus_wishlist_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      AUTH_SERVICE_URL: http://auth-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+
+  # ==========================================
+  # 9. CATEGORY SERVICE (Puerto: 8088 | DB: 3314)
+  # ==========================================
+  mysql-category:
     image: mysql:8.0
-    container_name: db-category
+    container_name: mysql-category
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_category_db
-    ports: ["3314:3306"]
-    restart: always
+    ports:
+      - "3314:3306"
+    volumes:
+      - mysql_category_data:/var/lib/mysql
 
-  db-payment:
+  category-service:
+    build:
+      context: ./category_service
+    container_name: category-service
+    restart: always
+    depends_on:
+      - mysql-category
+      - auth-service
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-category:3306/nexus_category_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      AUTH_SERVICE_URL: http://auth-service:8080
+
+# ==========================================
+  # 10. PAYMENT SERVICE (Puerto: 8089 | DB: 3325)
+  # ==========================================
+  mysql-payment:
     image: mysql:8.0
-    container_name: db-payment
+    container_name: mysql-payment
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: nexus_payment_db
-    ports: ["3315:3306"]
-    restart: always
-
-  # --- MICROSERVICIOS (Puertos 8080 al 8085) ---
-
-  auth-service:
-    build: ./auth_service
-    container_name: auth-service
     ports:
-      - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-auth:3306/nexus_auth_db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on:
-      - db-auth
-    restart: on-failure
-
-  catalog-service:
-    build: ./catalog_service
-    container_name: catalog-service
-    ports:
-      - "8081:8081"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-catalog:3306/nexus_catalog_db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on:
-      - db-catalog
-    restart: on-failure
-
-  inventory-service:
-    build: ./inventory_service
-    container_name: inventory-service
-    ports:
-      - "8082:8082"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-inventory:3306/nexus_inventory_db
-      CATALOG_SERVICE_URL: http://catalog-service:8081
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on:
-      - db-inventory
-      - catalog-service
-    restart: on-failure
-
-  profile-service:
-    build: ./profile_service
-    container_name: profile-service
-    ports:
-      - "8083:8083"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-profile:3306/nexus_profile_db
-      AUTH_SERVICE_URL: http://auth-service:8080
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on:
-      - db-profile
-      - auth-service
-    restart: on-failure
-
-  cart-service:
-    build: ./shopping_cart_service
-    container_name: cart-service
-    ports:
-      - "8084:8084"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-cart:3306/nexus_cart_db
-      AUTH_SERVICE_URL: http://auth-service:8080
-      CATALOG_SERVICE_URL: http://catalog-service:8081
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on:
-      - db-cart
-      - auth-service
-      - catalog-service
-    restart: on-failure
-
-  order-service:
-    build: ./order_service
-    container_name: order-service
-    ports:
-      - "8085:8085"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-order:3306/nexus_order_db
-      AUTH_SERVICE_URL: http://auth-service:8080
-      CATALOG_SERVICE_URL: http://catalog-service:8081
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on:
-      - db-order
-      - auth-service
-      - catalog-service
-    restart: on-failure
-
-
-  review-service:
-    build: ./review_service
-    container_name: review-service
-    ports:
-      - "8086:8086"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-review:3306/nexus_review_db
-      AUTH_SERVICE_URL: http://auth-service:8080
-      CATALOG_SERVICE_URL: http://catalog-service:8081
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on:
-      - db-review
-      - auth-service
-      - catalog-service
-
-
-
-  wishlist-service:
-    build: ./wishlist_service
-    container_name: wishlist-service
-    ports: ["8087:8087"]
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-wishlist:3306/nexus_wishlist_db
-      AUTH_SERVICE_URL: http://auth-service:8080
-      CATALOG_SERVICE_URL: http://catalog-service:8081
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on: [db-wishlist, auth-service, catalog-service]
-
-
-
-  category-service:
-    build: ./category_service
-    container_name: category-service
-    ports: ["8088:8088"]
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-category:3306/nexus_category_db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
-    depends_on: [db-category]
-
-
+      - "3325:3306" # <--- Cambiado de 3315 a 3325 para evitar el conflicto
+    volumes:
+      - mysql_payment_data:/var/lib/mysql
 
   payment-service:
-    build: ./payment_service
+    build:
+      context: ./payment_service
     container_name: payment-service
-    ports: ["8089:8089"]
+    restart: always
+    depends_on:
+      - mysql-payment
+      - order-service
+    ports:
+      - "8089:8089"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db-payment:3306/nexus_payment_db
-      ORDER_SERVICE_URL: http://order-service:8085
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-payment:3306/nexus_payment_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
-    depends_on:
-      - db-payment
-      - order-service
+      ORDER_SERVICE_URL: http://order-service:8085
+
+# ==========================================
+# SECCIÓN DE VOLÚMENES PERSISTENTES
+# ==========================================
+volumes:
+  mysql_auth_data:
+  mysql_catalog_data:
+  mysql_inventory_data:
+  mysql_profile_data:
+  mysql_cart_data:
+  mysql_order_data:
+  mysql_review_data:
+  mysql_wishlist_data:
+  mysql_category_data:
+  mysql_payment_data:

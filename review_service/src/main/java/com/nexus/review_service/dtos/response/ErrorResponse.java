@@ -1,4 +1,4 @@
-package com.nexus.catalog_service.dtos.response;
+package com.nexus.review_service.dtos.response;
 
 import lombok.Builder;
 import lombok.Data;

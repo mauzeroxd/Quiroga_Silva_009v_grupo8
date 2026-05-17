@@ -1,0 +1,13 @@
+### Variables locales
+@host = http://localhost:8080
+
+### Paso 1: Registrar un Administrador
+POST {{host}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+    "username": "mauro_dev_2026",
+    "password": "password123",
+    "tipoId": 1
+}
+
