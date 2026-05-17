@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -19,5 +22,15 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UsuarioResponse> register(@Valid @RequestBody UsuarioRequest request) { // <--- Usa tu UsuarioRequest
         return new ResponseEntity<>(authService.registrar(request), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<Map<String, Object>> getUserById(@PathVariable Long id) {
+        UsuarioResponse response = authService.obtenerPorId(id);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", response.getId());
+        result.put("username", response.getUsername());
+        result.put("rol", response.getRol());
+        return ResponseEntity.ok(result);
     }
 }

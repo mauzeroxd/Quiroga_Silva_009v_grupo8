@@ -41,4 +41,14 @@ public class AuthService {
                 .rol(guardado.getTipo().getNombreTipo())
                 .build();
     }
+
+    public UsuarioResponse obtenerPorId(Long id) {
+        UsuarioModel usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("El usuario con ID " + id + " no existe."));
+        return UsuarioResponse.builder()
+                .id(usuario.getId())
+                .username(usuario.getUsername())
+                .rol(usuario.getTipo() != null ? usuario.getTipo().getNombreTipo() : "N/A")
+                .build();
+    }
 }
