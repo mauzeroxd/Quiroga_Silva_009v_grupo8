@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
-@Table(name = "VIDEOJUEGOS") // Nombre exacto de la tabla en SQL proporcionado
+@Table(name = "videojuegos")
 public class VideojuegoModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

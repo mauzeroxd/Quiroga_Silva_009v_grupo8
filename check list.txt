@@ -1,0 +1,10 @@
+  mysql_auth_data: listo
+  mysql_catalog_data:
+  mysql_inventory_data:
+  mysql_profile_data: listo
+  mysql_cart_data:
+  mysql_order_data:
+  mysql_review_data:
+  mysql_wishlist_data:
+  mysql_category_data: listo
+  mysql_payment_data:

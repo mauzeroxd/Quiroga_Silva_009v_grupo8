@@ -16,8 +16,8 @@ public class InventoryController {
     @Autowired
     private InventoryService service;
 
-    @PostMapping("/keys")
-    public ResponseEntity<InventoryResponse> addKey(@Valid @RequestBody InventoryRequest request) {
-        return new ResponseEntity<>(service.registrarKey(request), HttpStatus.CREATED);
+    @PostMapping
+    public ResponseEntity<InventoryResponse> addInventory(@Valid @RequestBody InventoryRequest request) {
+        return new ResponseEntity<>(service.registrarInventario(request), HttpStatus.CREATED);
     }
 }

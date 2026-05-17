@@ -7,7 +7,7 @@ import lombok.Data;
 @Builder
 public class InventoryResponse {
     private Long id;
-    private String codigoKey;
-    private Integer vendido;
+    private Long videojuegoId;
+    private Integer cantidad;
     private String nombreJuego; // Dato enriquecido desde el microservicio Catalog
 }

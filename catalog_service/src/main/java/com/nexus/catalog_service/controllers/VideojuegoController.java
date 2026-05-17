@@ -1,11 +1,13 @@
 package com.nexus.catalog_service.controllers;
 
+import com.nexus.catalog_service.dtos.request.VideojuegoRequest; // <--- Importar el nuevo Request
 import com.nexus.catalog_service.dtos.response.VideojuegoResponse;
 import com.nexus.catalog_service.services.VideojuegoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -23,5 +25,13 @@ public class VideojuegoController {
     @GetMapping("/{id}")
     public ResponseEntity<VideojuegoResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
+    }
+
+    // ==========================================
+    // AGREGAR ESTE MÉTODO PARA EL REGISTRO
+    // ==========================================
+    @PostMapping
+    public ResponseEntity<VideojuegoResponse> create(@Valid @RequestBody VideojuegoRequest request) {
+        return new ResponseEntity<>(service.save(request), HttpStatus.CREATED);
     }
 }
